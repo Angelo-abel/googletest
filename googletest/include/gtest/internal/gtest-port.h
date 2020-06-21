@@ -678,6 +678,8 @@ typedef struct _RTL_CRITICAL_SECTION GTEST_CRITICAL_SECTION;
 
 // A macro to disallow copy constructor and operator=
 // This should be used in the private: declarations for a class.
+// 重载构造函数和拷贝函数
+// 使用拷贝构造函数和赋值构造函数
 #define GTEST_DISALLOW_COPY_AND_ASSIGN_(type) \
   type(type const &) = delete; \
   GTEST_DISALLOW_ASSIGN_(type)
@@ -1020,11 +1022,17 @@ inline void FlushInfoLog() { fflush(nullptr); }
 //
 // Note that the non-const reference will not have "const" added. This is
 // standard, and necessary so that "T" can always bind to "const T&".
+// 在结构体里面定义常量引用，不同传进来什么类型，都可以给该类型添加的const修饰，但是注意这种方式
+// 只能在编译器，计算出或者得到相应的类型
+// 如果想要进行相应的运算，那么需要在添加
 template <typename T>
 struct ConstRef { typedef const T& type; };
 template <typename T>
 struct ConstRef<T&> { typedef T& type; };
 
+// 定义宏方便用户使用
+// 将传递进来的参数类型转换为const类型的
+// typename ::testing::internal::ConstRef<T>::type 使用该模板给参数添加const
 // The argument T must depend on some template parameters.
 #define GTEST_REFERENCE_TO_CONST_(T) \
   typename ::testing::internal::ConstRef<T>::type
@@ -1049,6 +1057,8 @@ struct ConstRef<T&> { typedef T& type; };
 // This relatively ugly name is intentional. It prevents clashes with
 // similar functions users may have (e.g., implicit_cast). The internal
 // namespace alone is not enough because the function can be found by ADL.
+// 使用该宏定义，可以参数类型隐式转换为对应的参数
+// std::const_cast static_cast dynamic_cast实现的原理也是这样的
 template<typename To>
 inline To ImplicitCast_(To x) { return x; }
 
@@ -1083,6 +1093,7 @@ inline To DownCast_(From* f) {  // so we only accept pointers
   if (false) {
   GTEST_INTENTIONAL_CONST_COND_POP_()
   const To to = nullptr;
+  // 这样传入参数类型就被强制转换了
   ::testing::internal::ImplicitCast_<From*>(to);
   }
 
@@ -1107,6 +1118,7 @@ Derived* CheckedDowncastToActualType(Base* base) {
 #if GTEST_HAS_DOWNCAST_
   return ::down_cast<Derived*>(base);
 #elif GTEST_HAS_RTTI
+  // 动态转换指针
   return dynamic_cast<Derived*>(base);  // NOLINT
 #else
   return static_cast<Derived*>(base);  // Poor man's downcast.
@@ -1300,6 +1312,7 @@ extern "C" inline void* ThreadFuncWithCLinkage(void* thread) {
 //
 // These classes are only for testing Google Test's own constructs. Do
 // not use them in user tests, either directly or indirectly.
+
 template <typename T>
 class ThreadWithParam : public ThreadWithParamBase {
  public:
@@ -1514,6 +1527,7 @@ class ThreadWithParam : public ThreadWithParamBase {
     }
 
    private:
+    // 定义新的函数指针
     UserThreadFunc* const func_;
     const T param_;
 
@@ -1871,6 +1885,7 @@ class GTestMutexLock {
 
 typedef GTestMutexLock MutexLock;
 
+// 定义线程中的成员变量，使用一个
 template <typename T>
 class GTEST_API_ ThreadLocal {
  public:
@@ -1959,6 +1974,7 @@ namespace posix {
 
 typedef struct _stat StatStruct;
 
+// 判断一个文件描述是不是tty
 # ifdef __BORLANDC__
 inline int IsATTY(int fd) { return isatty(fd); }
 inline int StrCaseCmp(const char* s1, const char* s2) {

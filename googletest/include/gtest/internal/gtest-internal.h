@@ -447,12 +447,15 @@ GTEST_API_ TypeId GetTestTypeId();
 
 // Defines the abstract factory interface that creates instances
 // of a Test object.
+// 定义抽象工厂，专门用来创建测试对象
+// 简单工厂、方法工厂和抽象工厂在创建对象中使用
 class TestFactoryBase {
  public:
   virtual ~TestFactoryBase() {}
 
   // Creates a test instance to run. The instance is both created and destroyed
   // within TestInfoImpl::Run()
+  // 基类中返回当前基类方法
   virtual Test* CreateTest() = 0;
 
  protected:
@@ -464,6 +467,9 @@ class TestFactoryBase {
 
 // This class provides implementation of TeastFactoryBase interface.
 // It is used in TEST and TEST_F macros.
+// 创建模板类调用的宏函数
+// 每次返回都是不同的测试类
+// 模板类继承普通类 普通类继承模板类
 template <class TestClass>
 class TestFactoryImpl : public TestFactoryBase {
  public:
@@ -487,6 +493,7 @@ GTEST_API_ AssertionResult IsHRESULTFailure(const char* expr,
 using SetUpTestSuiteFunc = void (*)();
 using TearDownTestSuiteFunc = void (*)();
 
+// 专门定义结构体存储出错位置的代码信息，记录文件名和行号
 struct CodeLocation {
   CodeLocation(const std::string& a_file, int a_line)
       : file(a_file), line(a_line) {}
@@ -513,21 +520,25 @@ template <typename T>
 struct SuiteApiResolver : T {
   // testing::Test is only forward declared at this point. So we make it a
   // dependend class for the compiler to be OK with it.
+  // 定义一个派生类，判断当前类是不是派生
   using Test =
       typename std::conditional<sizeof(T) != 0, ::testing::Test, void>::type;
 
   static SetUpTearDownSuiteFuncType GetSetUpCaseOrSuite(const char* filename,
                                                         int line_num) {
-    SetUpTearDownSuiteFuncType test_case_fp =
+	// 获取当前回调函数类型，判断当前函数是test_case还是test_suite_fp
+	SetUpTearDownSuiteFuncType test_case_fp =
         GetNotDefaultOrNull(&T::SetUpTestCase, &Test::SetUpTestCase);
     SetUpTearDownSuiteFuncType test_suite_fp =
         GetNotDefaultOrNull(&T::SetUpTestSuite, &Test::SetUpTestSuite);
 
+	// 如果没有测试用例，那么那么记录下来
     GTEST_CHECK_(!test_case_fp || !test_suite_fp)
         << "Test can not provide both SetUpTestSuite and SetUpTestCase, please "
            "make sure there is only one present at "
         << filename << ":" << line_num;
 
+	// 如果test_case_fp为空，那么执行test_suite_fp
     return test_case_fp != nullptr ? test_case_fp : test_suite_fp;
   }
 
@@ -552,7 +563,7 @@ struct SuiteApiResolver : T {
 //
 // Arguments:
 //
-//   test_suite_name:   name of the test suite
+//   test_suite_name:   name of the test suite // 测试套名称
 //   name:             name of the test
 //   type_param        the name of the test's type parameter, or NULL if
 //                     this is not a typed or a type-parameterized test.

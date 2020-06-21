@@ -618,6 +618,7 @@ void PrintTo(std::reference_wrapper<T> ref, ::std::ostream* os) {
 
 // Helper function for printing a tuple.  T must be instantiated with
 // a tuple type.
+// 重载模板方式直接返回值的符号操作
 template <typename T>
 void PrintTupleTo(const T&, std::integral_constant<size_t, 0>,
                   ::std::ostream*) {}

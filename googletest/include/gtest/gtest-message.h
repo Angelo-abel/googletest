@@ -61,7 +61,7 @@ GTEST_DISABLE_MSC_WARNINGS_PUSH_(4251 \
 void operator<<(const testing::internal::Secret&, int);
 
 namespace testing {
-
+// 使用一个流操作符
 // The Message class works like an ostream repeater.
 //
 // Typical usage:
@@ -123,6 +123,8 @@ class GTEST_API_ Message {
     // defined in the global namespace) to be used in Google Test
     // assertions, testing::Message must access the custom << operator
     // from the global namespace.  With this using declaration,
+    // 使用using声明访问外部重载的operator<<操作符
+    // operator重载运算符的范围，限于全局区和std命名空间内
     // overloads of << defined in the global namespace and those
     // visible via Koenig lookup are both exposed in this function.
     using ::operator <<;
